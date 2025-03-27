@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MehmetEndüstriyelTakip - Orta Gerilim Hücre Üretim Takip Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="core/styles/main.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+            width: 250px; /* Sabit genişlik eklendi */
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+            border-radius: 5px;
+            padding: 10px 15px;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-planned {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status-in-progress {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+        
+        .status-delayed {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+        
+        .status-completed {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .priority-high {
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .priority-medium {
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .priority-low {
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .ai-chatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .ai-chatbot-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .ai-chatbot-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .progress-thin {
+            height: 5px;
+        }
+        
+        .custom-table th {
+            background-color: var(--light-color);
+            font-weight: 600;
+        }
+        
+        .material-required {
+            background-color: #fff3e0;
+        }
+        
+        .material-available {
+            background-color: #e8f5e9;
+        }
+        
+        .material-critical {
+            background-color: #ffebee;
+        }
+        
+        /* Gantt chart styles */
+        .gantt-container {
+            font-size: 12px;
+        }
+        
+        .gantt-header {
+            font-weight: bold;
+        }
+        
+        .gantt-day {
+            border: 1px solid #dee2e6;
+            padding: 2px;
+        }
+        
+        .gantt-row {
+            height: 30px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .gantt-bar {
+            height: 20px;
+            border-radius: 3px;
+            position: absolute;
+            top: 5px;
+        }
+        
+        /* Chat modal styles */
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: auto;
+        }
+        
+        .ai-message {
+            background-color: #f1f1f1;
+            margin-right: auto;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 220px;
+            }
+            .main-content {
+                margin-left: 220px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar col-md-3 col-lg-2 d-md-block">
+        <div class="text-center mb-4">
+            <h4>MehmetEndüstriyelTakip</h4>
+            <p class="text-muted small">Orta Gerilim Hücre Üretim Takip</p>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="#dashboard" data-bs-toggle="tab">
+                    <i class="bi bi-speedometer2"></i> Genel Bakış
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#orders" data-bs-toggle="tab">
+                    <i class="bi bi-file-earmark-text"></i> Siparişler
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#production" data-bs-toggle="tab">
+                    <i class="bi bi-gear"></i> Üretim Takip
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#materials" data-bs-toggle="tab">
+                    <i class="bi bi-box-seam"></i> Malzeme Yönetimi
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#planning" data-bs-toggle="tab">
+                    <i class="bi bi-calendar-check"></i> Planlama
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#reports" data-bs-toggle="tab">
+                    <i class="bi bi-graph-up"></i> Raporlar & Analizler
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#technical" data-bs-toggle="tab">
+                    <i class="bi bi-file-earmark-code"></i> Teknik Dokümanlar
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#settings" data-bs-toggle="tab">
+                    <i class="bi bi-sliders"></i> Ayarlar
+                </a>
+            </li>
+        </ul>
+        <div class="mt-auto p-3 text-center text-muted small">
+            <p>v1.0.0</p>
+            <p>© 2023 MehmetEndüstriyel</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Orta Gerilim Hücre Üretim Takip Sistemi</h2>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i> Yönetici
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Profil</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Ayarlar</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right"></i> Çıkış Yap</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="tab-content">
+            <!-- Dashboard Tab -->
+            <div class="tab-pane fade show active" id="dashboard">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-2">Aktif Siparişler</h6>
+                                        <h3 class="mb-0">24</h3>
+                                    </div>
+                                    <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                        <i class="bi bi-file-earmark-text text-primary" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <span class="text-success"><i class="bi bi-arrow-up"></i> 5.2%</span>
+                                    <span class="text-muted">geçen aya göre</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-2">Devam Eden Üretim</h6>
+                                        <h3 class="mb-0">18</h3>
+                                    </div>
+                                    <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                        <i class="bi bi-gear text-warning" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <span class="text-danger"><i class="bi bi-arrow-down"></i> 2.1%</span>
+                                    <span class="text-muted">geçen aya göre</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-2">Geciken Siparişler</h6>
+                                        <h3 class="mb-0">3</h3>
+                                    </div>
+                                    <div class="bg-danger bg-opacity-10 p-3 rounded">
+                                        <i class="bi bi-exclamation-triangle text-danger" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <span class="text-success"><i class="bi bi-arrow-down"></i> 1.8%</span>
+                                    <span class="text-muted">geçen aya göre</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-2">Tamamlanan Siparişler</h6>
+                                        <h3 class="mb-0">42</h3>
+                                    </div>
+                                    <div class="bg-success bg-opacity-10 p-3 rounded">
+                                        <i class="bi bi-check-circle text-success" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <span class="text-success"><i class="bi bi-arrow-up"></i> 8.7%</span>
+                                    <span class="text-muted">geçen aya göre</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Üretim Durumu</h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="productionStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Son 30 Gün
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="productionStatusDropdown">
+                                        <li><a class="dropdown-item" href="#">Son 7 Gün</a></li>
+                                        <li><a class="dropdown-item" href="#">Son 30 Gün</a></li>
+                                        <li><a class="dropdown-item" href="#">Son 90 Gün</a></li>
+                                        <li><a class="dropdown-item" href="#">Bu Yıl</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="productionChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Hücre Tipi Dağılımı</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="cellTypeChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Kritik Malzeme Durumu</h5>
+                                <a href="#" class="btn btn-sm btn-outline-primary">Tümünü Gör</a>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Malzeme Kodu</th>
+                                                <th>Malzeme Adı</th>
+                                                <th>Stok</th>
+                                                <th>İhtiyaç</th>
+                                                <th>Durum</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="material-critical">
+                                                <td>137998%</td>
+                                                <td>Siemens 7SR1003-1JA20-2DA0+ZY20 24VDC</td>
+                                                <td>2</td>
+                                                <td>8</td>
+                                                <td><span class="badge bg-danger">Kritik</span></td>
+                                            </tr>
+                                            <tr class="material-required">
+                                                <td>144866%</td>
+                                                <td>KAP-80/190-95 Akım Trafosu</td>
+                                                <td>3</td>
+                                                <td>5</td>
+                                                <td><span class="badge bg-warning">Eksik</span></td>
+                                            </tr>
+                                            <tr class="material-required">
+                                                <td>120170%</td>
+                                                <td>M480TB/G-027-95.300UN5 Kablo Başlığı</td>
+                                                <td>12</td>
+                                                <td>15</td>
+                                                <td><span class="badge bg-warning">Eksik</span></td>
+                                            </tr>
+                                            <tr class="material-available">
+                                                <td>109367%</td>
+                                                <td>582mm Bara</td>
+                                                <td>25</td>
+                                                <td>18</td>
+                                                <td><span class="badge bg-success">Yeterli</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Son Uyarılar</h5>
+                                <a href="#" class="btn btn-sm btn-outline-primary">Tümünü Gör</a>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group">
+                                    <a href="#" class="list-group-item list-group-item-action border-danger border-start-0 border-end-0 border-top-0 border-3">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">Teslim Tarihi Gecikmesi</h6>
+                                            <small class="text-danger">1 saat önce</small>
+                                        </div>
+                                        <p class="mb-1">Sipariş No: #0424-1251 - RM 36 CB hücresinin mekanik montajı gecikiyor.</p>
+                                        <small class="text-muted">Mekanik Üretim Birimi</small>
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action border-warning border-start-0 border-end-0 border-top-0 border-3">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">Malzeme Eksikliği</h6>
+                                            <small class="text-warning">3 saat önce</small>
+                                        </div>
+                                        <p class="mb-1">Sipariş No: #0424-1245 için gerekli akım trafosu stokta yok.</p>
+                                        <small class="text-muted">Satın Alma Birimi</small>
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action border-success border-start-0 border-end-0 border-top-0 border-3">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">Sorun Çözüldü</h6>
+                                            <small class="text-success">5 saat önce</small>
+                                        </div>
+                                        <p class="mb-1">Sipariş No: #0424-1239 için kablaj problemi çözüldü.</p>
+                                        <small class="text-muted">Kablaj Birimi</small>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div class="tab-pane fade" id="orders">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Sipariş Yönetimi</h5>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newOrderModal">
+                            <i class="bi bi-plus"></i> Yeni Sipariş Ekle
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" placeholder="Sipariş No Ara...">
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select">
+                                        <option selected>Hücre Tipi Seçin</option>
+                                        <option>RM 36 CB</option>
+                                        <option>RM 36 LB</option>
+                                        <option>RM 36 FL</option>
+                                        <option>RMU</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select">
+                                        <option selected>Durum Seçin</option>
+                                        <option>Planlandı</option>
+                                        <option>Devam Ediyor</option>
+                                        <option>Gecikmiş</option>
+                                        <option>Tamamlandı</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100">Filtrele</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Sipariş No</th>
+                                        <th>Müşteri</th>
+                                        <th>Hücre Tipi</th>
+                                        <th>Miktar</th>
+                                        <th>Planlanan Teslim</th>
+                                        <th>Durum</th>
+                                        <th>İlerleme</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="priority-high">
+                                        <td>#0424-1251</td>
+                                        <td>AYEDAŞ</td>
+                                        <td>RM 36 CB</td>
+                                        <td>1</td>
+                                        <td>15.11.2024</td>
+                                        <td><span class="status-badge status-delayed">Gecikiyor</span></td>
+                                        <td>
+                                            <div class="progress progress-thin">
+                                                <div class="progress-bar bg-danger" role="progressbar" style="width: 65%"></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="priority-medium">
+                                        <td>#0424-1245</td>
+                                        <td>TEİAŞ</td>
+                                        <td>RM 36 CB</td>
+                                        <td>1</td>
+                                        <td>20.11.2024</td>
+                                        <td><span class="status-badge status-in-progress">Devam Ediyor</span></td>
+                                        <td>
+                                            <div class="progress progress-thin">
+                                                <div class="progress-bar bg-warning" role="progressbar" style="width: 45%"></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>#0424-1239</td>
+                                        <td>BEDAŞ</td>
+                                        <td>RM 36 LB</td>
+                                        <td>1</td>
+                                        <td>25.11.2024</td>
+                                        <td><span class="status-badge status-in-progress">Devam Ediyor</span></td>
+                                        <td>
+                                            <div class="progress progress-thin">
+                                                <div class="progress-bar bg-warning" role="progressbar" style="width: 30%"></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>#0424-1235</td>
+                                        <td>OSMANİYE ELEKTRİK</td>
+                                        <td>RM 36 FL</td>
+                                        <td>1</td>
+                                        <td>30.11.2024</td>
+                                        <td><span class="status-badge status-planned">Planlandı</span></td>
+                                        <td>
+                                            <div class="progress progress-thin">
+                                                <div class="progress-bar bg-info" role="progressbar" style="width: 10%"></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>#0424-1233</td>
+                                        <td>ENERJİSA</td>
+                                        <td>RM 36 LB</td>
+                                        <td>1</td>
+                                        <td>05.12.2024</td>
+                                        <td><span class="status-badge status-completed">Tamamlandı</span></td>
+                                        <td>
+                                            <div class="progress progress-thin">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Önceki</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Sonraki</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Production Tab -->
+            <div class="tab-pane fade" id="production">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Üretim Takip Tablosu</h5>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-secondary">Günlük</button>
+                                    <button class="btn btn-sm btn-outline-secondary active">Haftalık</button>
+                                    <button class="btn btn-sm btn-outline-secondary">Aylık</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Sipariş No</th>
+                                                <th>Hücre Tipi</th>
+                                                <th>Proje</th>
+                                                <th>Elektrik Tasarım</th>
+                                                <th>Mekanik Tasarım</th>
+                                                <th>Satın Alma</th>
+                                                <th>Mekanik Üretim</th>
+                                                <th>İç Montaj</th>
+                                                <th>Kablaj</th>
+                                                <th>Genel Montaj</th>
+                                                <th>Test</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>#0424-1251</td>
+                                                <td>RM 36 CB</td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-warning"><i class="bi bi-exclamation-triangle"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>#0424-1245</td>
+                                                <td>RM 36 CB</td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-warning"><i class="bi bi-exclamation-triangle"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>#0424-1239</td>
+                                                <td>RM 36 LB</td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>#0424-1235</td>
+                                                <td>RM 36 FL</td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-success"><i class="bi bi-check"></i></span></td>
+                                                <td><span class="badge bg-warning"><i class="bi bi-exclamation-triangle"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                                <td><span class="badge bg-secondary"><i class="bi bi-dash"></i></span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Üretim Gantt Şeması</h5>
+                            </div>
+                            <div class="card-body">
+                                <div style="height: 400px; overflow-y: auto;">
+                                    <div class="gantt-container">
+                                        <div class="gantt-header d-flex mb-2">
+                                            <div style="width: 120px;"></div>
+                                            <div class="d-flex flex-grow-1">
+                                                <div class="gantt-day text-center" style="width: 30px;">Pzt</div>
+                                                <div class="gantt-day text-center" style="width: 30px;">Sal</div>
+                                                <div class="gantt-day text-center" style="width: 30px;">Çar</div>
+                                                <div class="gantt-day text-center" style="width: 30px;">Per</div>
+                                                <div class="gantt-day text-center" style="width: 30px;">Cum</div>
+                                                <div class="gantt-day text-center" style="width: 30px;">Cmt</div>
+                                                <div class="gantt-day text-center" style="width: 30px;">Paz</div>
+                                            </div>
+                                        </div>
+                                        <div class="gantt-row mb-2">
+                                            <div style="width: 120px; font-size: 12px;">#0424-1251</div>
+                                            <div class="d-flex flex-grow-1 position-relative">
+                                                <div class="gantt-bar bg-danger" style="left: 90px; width: 120px;">Mekanik Üretim</div>
+                                            </div>
+                                        </div>
+                                        <div class="gantt-row mb-2">
+                                            <div style="width: 120px; font-size: 12px;">#0424-1245</div>
+                                            <div class="d-flex flex-grow-1 position-relative">
+                                                <div class="gantt-bar bg-warning" style="left: 60px; width: 60px;">Satın Alma</div>
+                                            </div>
+                                        </div>
+                                        <div class="gantt-row mb-2">
+                                            <div style="width: 120px; font-size: 12px;">#0424-1239</div>
+                                            <div class="d-flex flex-grow-1 position-relative">
+                                                <div class="gantt-bar bg-success" style="left: 30px; width: 30px;">Mekanik Tasarım</div>
+                                            </div>
+                                        </div>
+                                        <div class="gantt-row mb-2">
+                                            <div style="width: 120px; font-size: 12px;">#0424-1235</div>
+                                            <div class="d-flex flex-grow-1 position-relative">
+                                                <div class="gantt-bar bg-primary" style="left: 0px; width: 30px;">Elektrik Tasarım</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Birim Bazlı Üretim Takibi</h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="unitDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Tüm Birimler
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="unitDropdown">
+                                        <li><a class="dropdown-item" href="#">Elektrik Tasarım</a></li>
+                                        <li><a class="dropdown-item" href="#">Mekanik Tasarım</a></li>
+                                        <li><a class="dropdown-item" href="#">Satın Alma</a></li>
+                                        <li><a class="dropdown-item" href="#">Mekanik Üretim</a></li>
+                                        <li><a class="dropdown-item" href="#">İç Montaj</a></li>
+                                        <li><a class="dropdown-item" href="#">Kablaj</a></li>
+                                        <li><a class="dropdown-item" href="#">Genel Montaj</a></li>
+                                        <li><a class="dropdown-item" href="#">Test</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="card mb-3">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">Elektrik Tasarım</h6>
+                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                    <div>
+                                                        <h3 class="mb-0">4</h3>
+                                                        <small class="text-muted">Toplam İş</small>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="mb-0">2</h3>
+                                                        <small class="text-muted">Devam Eden</small>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="mb-0">2</h3>
+                                                        <small class="text-muted">Tamamlanan</small>
+                                                    </div>
+                                                </div>
+                                                <div class="progress mt-3">
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width: 50%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card mb-3">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">Mekanik Tasarım</h6>
+                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                    <div>
+                                                        <h3 class="mb-0">4</h3>
+                                                        <small class="text-muted">Toplam İş</small>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="mb-0">1</h3>
+                                                        <small class="text-muted">Devam Eden</small>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="mb-0">3</h3>
+                                                        <small class="text-muted">Tamamlanan</small>
+                                                    </div>
+                                                </div>
+                                                <div class="progress mt-3">
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card mb-3">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">Satın Alma</h6>
+                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                    <div>
+                                                        <h3 class="mb-0">4</h3>
+                                                        <small class="text-muted">Toplam İş</small>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="mb-0">1</h3>
+                                                        <small class="text-muted">Devam Eden</small>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="mb-0">3</h3>
+                                                        <small class="text-muted">Tamamlanan</small>
+                                                    </div>
+                                                </div>
+                                                <div class="progress mt-3">
+                                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 75%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card mb-3">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">Mekanik Üretim</h6>
+                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                    <div>
+                                                        <h3 class="mb-0">4</h3>
+                                                        <small class="text-muted">Toplam İş</small>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="mb-0">1</h3>
+                                                        <small class="text-muted">Devam Eden</small>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="mb-0">3</h3>
+                                                        <small class="text-muted">Tamamlanan</small>
+                                                    </div>
+                                                </div>
+                                                <div class="progress mt-3">
+                                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 25%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Materials Tab -->
+            <div class="tab-pane fade" id="materials">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Malzeme Yönetimi</h5>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-secondary">Tümü</button>
+                                    <button class="btn btn-sm btn-outline-secondary">Stokta Olanlar</button>
+                                    <button class="btn btn-sm btn-outline-secondary active">Kritik Stok</button>
+                                    <button class="btn btn-sm btn-outline-secondary">Sipariş Bekleyenler</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Malzeme Kodu</th>
+                                                <th>Malzeme Adı</th>
+                                                <th>Stok Miktarı</th>
+                                                <th>Minimum Stok</th>
+                                                <th>Tedarik Süresi</th>
+                                                <th>Son Sipariş Tarihi</th>
+                                                <th>Durum</th>
+                                                <th>İşlemler</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="material-critical">
+                                                <td>137998%</td>
+                                                <td>Siemens 7SR1003-1JA20-2DA0+ZY20 24VDC</td>
+                                                <td>2</td>
+                                                <td>5</td>
+                                                <td>15 gün</td>
+                                                <td>10.10.2024</td>
+                                                <td><span class="badge bg-danger">Kritik</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary">Sipariş Ekle</button>
+                                                </td>
+                                            </tr>
+                                            <tr class="material-required">
+                                                <td>144866%</td>
+                                                <td>KAP-80/190-95 Akım Trafosu</td>
+                                                <td>3</td>
+                                                <td>5</td>
+                                                <td>10 gün</td>
+                                                <td>15.10.2024</td>
+                                                <td><span class="badge bg-warning">Düşük</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary">Sipariş Ekle</button>
+                                                </td>
+                                            </tr>
+                                            <tr class="material-required">
+                                                <td>120170%</td>
+                                                <td>M480TB/G-027-95.300UN5 Kablo Başlığı</td>
+                                                <td>12</td>
+                                                <td>15</td>
+                                                <td>7 gün</td>
+                                                <td>20.10.2024</td>
+                                                <td><span class="badge bg-warning">Düşük</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary">Sipariş Ekle</button>
+                                                </td>
+                                            </tr>
+                                            <tr class="material-available">
+                                                <td>109367%</td>
+                                                <td>582mm Bara</td>
+                                                <td>25</td>
+                                                <td>10</td>
+                                                <td>5 gün</td>
+                                                <td>05.10.2024</td>
+                                                <td><span class="badge bg-success">Yeterli</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-secondary">Detay</button>
+                                                </td>
+                                            </tr>
+                                            <tr class="material-available">
+                                                <td>109363%</td>
+                                                <td>432mm Bara</td>
+                                                <td>18</td>
+                                                <td>10</td>
+                                                <td>5 gün</td>
+                                                <td>05.10.2024</td>
+                                                <td><span class="badge bg-success">Yeterli</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-secondary">Detay</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Malzeme Tahminleri</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="materialForecastChart" height="300"></canvas>
+                            </div>
+                        </div>
+                        <div class="card mt-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Son Siparişler</h5>
+                                <a href="#" class="btn btn-sm btn-outline-primary">Tümü</a>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group">
+                                    <a href="#" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">#PO-2024-1025</h6>
+                                            <small class="text-muted">2 gün önce</small>
+                                        </div>
+                                        <p class="mb-1">Siemens 7SR1003-1JA20-2DA0+ZY20 24VDC</p>
+                                        <small class="text-muted">Miktar: 5, Tahmini Teslim: 25.11.2024</small>
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">#PO-2024-1024</h6>
+                                            <small class="text-muted">5 gün önce</small>
+                                        </div>
+                                        <p class="mb-1">KAP-80/190-95 Akım Trafosu</p>
+                                        <small class="text-muted">Miktar: 3, Tahmini Teslim: 20.11.2024</small>
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">#PO-2024-1023</h6>
+                                            <small class="text-muted">1 hafta önce</small>
+                                        </div>
+                                        <p class="mb-1">M480TB/G-027-95.300UN5 Kablo Başlığı</p>
+                                        <small class="text-muted">Miktar: 10, Tahmini Teslim: 15.11.2024</small>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planning Tab -->
+            <div class="tab-pane fade" id="planning">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Üretim Planlama</h5>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-secondary">Günlük</button>
+                                    <button class="btn btn-sm btn-outline-secondary active">Haftalık</button>
+                                    <button class="btn btn-sm btn-outline-secondary">Aylık</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="productionCalendar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Kapasite Planlama</h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="capacityDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Tüm Birimler
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="capacityDropdown">
+                                        <li><a class="dropdown-item" href="#">Elektrik Tasarım</a></li>
+                                        <li><a class="dropdown-item" href="#">Mekanik Tasarım</a></li>
+                                        <li><a class="dropdown-item" href="#">Satın Alma</a></li>
+                                        <li><a class="dropdown-item" href="#">Mekanik Üretim</a></li>
+                                        <li><a class="dropdown-item" href="#">İç Montaj</a></li>
+                                        <li><a class="dropdown-item" href="#">Kablaj</a></li>
+                                        <li><a class="dropdown-item" href="#">Genel Montaj</a></li>
+                                        <li><a class="dropdown-item" href="#">Test</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="capacityChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Teslimat Tahminleri</h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="deliveryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Son 30 Gün
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="deliveryDropdown">
+                                        <li><a class="dropdown-item" href="#">Son 7 Gün</a></li>
+                                        <li><a class="dropdown-item" href="#">Son 30 Gün</a></li>
+                                        <li><a class="dropdown-item" href="#">Son 90 Gün</a></li>
+                                        <li><a class="dropdown-item" href="#">Bu Yıl</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="deliveryChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div class="tab-pane fade" id="reports">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Raporlar ve Analizler</h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" id="reportsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-download"></i> Rapor Al
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
+                                        <li><a class="dropdown-item" href="#">Üretim Raporu</a></li>
+                                        <li><a class="dropdown-item" href="#">Malzeme Raporu</a></li>
+                                        <li><a class="dropdown-item" href="#">Gecikme Raporu</a></li>
+                                        <li><a class="dropdown-item" href="#">Verimlilik Raporu</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#">Özel Rapor Oluştur</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Üretim Verimliliği</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <canvas id="efficiencyChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Gecikme Nedenleri</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <canvas id="delayChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Birim Bazlı Çalışma Süreleri</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <canvas id="unitTimeChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Müşteri Bazlı Siparişler</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <canvas id="customerChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Tab -->
+            <div class="tab-pane fade" id="technical">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Teknik Dokümanlar</h5>
+                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
+                                    <i class="bi bi-upload"></i> Yükle
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" placeholder="Doküman ara...">
+                                    <button class="btn btn-outline-secondary" type="button">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                                <div class="list-group">
+                                    <a href="#" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">RM 36 CB Teknik Çizim</h6>
+                                            <small class="text-muted">15.10.2024</small>
+                                        </div>
+                                        <p class="mb-1">Rev. 2.1 - Son güncelleme: Ahmet Yılmaz</p>
+                                        <small class="text-muted">Elektrik Tasarım</small>
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">RM 36 LB Montaj Talimatı</h6>
+                                            <small class="text-muted">10.10.2024</small>
+                                        </div>
+                                        <p class="mb-1">Rev. 1.3 - Son güncelleme: Mehmet Demir</p>
+                                        <small class="text-muted">Mekanik Tasarım</small>
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">RM 36 FL Test Prosedürü</h6>
+                                            <small class="text-muted">05.10.2024</small>
+                                        </div>
+                                        <p class="mb-1">Rev. 3.0 - Son güncelleme: Ayşe Kaya</p>
+                                        <small class="text-muted">Test Birimi</small>
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">RMU Kablaj Şeması</h6>
+                                            <small class="text-muted">01.10.2024</small>
+                                        </div>
+                                        <p class="mb-1">Rev. 1.5 - Son güncelleme: Fatma Şahin</p>
+                                        <small class="text-muted">Kablaj Birimi</small>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Teknik Sorgulama</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="technicalQuestion" class="form-label">Teknik sorunuzu yazın:</label>
+                                    <textarea class="form-control" id="technicalQuestion" rows="3" placeholder="Örneğin: RM 36 CB hücresinde hangi akım trafosu kullanılır?"></textarea>
+                                </div>
+                                <button class="btn btn-primary">Sorgula</button>
+                                <hr>
+                                <div class="alert alert-info">
+                                    <h6><i class="bi bi-lightbulb"></i> Yapay Zeka Cevabı:</h6>
+                                    <p>RM 36 CB hücresinde genellikle 200-400/5-5A 5P20 7,5/15VA veya 300-600/5-5A 5P20 7,5/15VA özelliklerinde toroidal tip akım trafoları kullanılmaktadır. Canias kodları: 144866% (KAP-80/190-95) veya 142227% (KAT-85/190-95).</p>
+                                    <p class="mb-0">Referans doküman: <a href="#">RM 36 CB Teknik Şartnamesi Rev.2.1</a></p>
+                                </div>
+                                <div class="mt-3">
+                                    <h6>İlgili Dokümanlar:</h6>
+                                    <ul>
+                                        <li><a href="#">RM 36 CB Teknik Çizim</a> - Rev.2.1</li>
+                                        <li><a href="#">Akım Trafosu Seçim Kılavuzu</a> - Rev.1.3</li>
+                                        <li><a href="#">TEDAS-MLZ-2020-069 Teknik Şartname</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-pane fade" id="settings">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Sistem Ayarları</h5>
+                            </div>
+                            <div class="card-body">
+                                <form>
+                                    <div class="mb-3">
+                                        <label for="companyName" class="form-label">Şirket Adı</label>
+                                        <input type="text" class="form-control" id="companyName" value="Mehmet Endüstriyel">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="timezone" class="form-label">Zaman Dilimi</label>
+                                        <select class="form-select" id="timezone">
+                                            <option selected>(UTC+03:00) İstanbul</option>
+                                            <option>(UTC+01:00) Berlin</option>
+                                            <option>(UTC+00:00) Londra</option>
+                                            <option>(UTC-05:00) New York</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="dateFormat" class="form-label">Tarih Formatı</label>
+                                        <select class="form-select" id="dateFormat">
+                                            <option selected>DD.MM.YYYY (24.11.2024)</option>
+                                            <option>MM/DD/YYYY (11/24/2024)</option>
+                                            <option>YYYY-MM-DD (2024-11-24)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">ERP Entegrasyonu</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="erpIntegration" checked>
+                                            <label class="form-check-label" for="erpIntegration">
+                                                Canias ERP ile entegrasyon aktif
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Ayarları Kaydet</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Kullanıcı Yönetimi</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Ad Soyad</th>
+                                                <th>Departman</th>
+                                                <th>Rol</th>
+                                                <th>Durum</th>
+                                                <th>İşlem</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Ahmet Yılmaz</td>
+                                                <td>Elektrik Tasarım</td>
+                                                <td>Yönetici</td>
+                                                <td><span class="badge bg-success">Aktif</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Mehmet Demir</td>
+                                                <td>Mekanik Tasarım</td>
+                                                <td>Kullanıcı</td>
+                                                <td><span class="badge bg-success">Aktif</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Ayşe Kaya</td>
+                                                <td>Test</td>
+                                                <td>Kullanıcı</td>
+                                                <td><span class="badge bg-success">Aktif</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Fatma Şahin</td>
+                                                <td>Kablaj</td>
+                                                <td>Kullanıcı</td>
+                                                <td><span class="badge bg-secondary">Pasif</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                    <i class="bi bi-plus"></i> Yeni Kullanıcı Ekle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Yapay Zeka Ayarları</h5>
+                            </div>
+                            <div class="card-body">
+                                <form>
+                                    <div class="mb-3">
+                                        <label class="form-label">Yapay Zeka Modülleri</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="aiProduction" checked>
+                                            <label class="form-check-label" for="aiProduction">
+                                                Üretim Tahmini Modülü
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="aiMaterial" checked>
+                                            <label class="form-check-label" for="aiMaterial">
+                                                Malzeme Tahmini Modülü
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="aiTechnical" checked>
+                                            <label class="form-check-label" for="aiTechnical">
+                                                Teknik Destek Modülü
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="aiAnalysis">
+                                            <label class="form-check-label" for="aiAnalysis">
+                                                Analiz Modülü (Deneysel)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="aiModel" class="form-label">Model Seçimi</label>
+                                        <select class="form-select" id="aiModel">
+                                            <option selected>GPT-4 (OpenAI)</option>
+                                            <option>GPT-3.5 Turbo (OpenAI)</option>
+                                            <option>DeepSeek (Yerel Model)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="apiKey" class="form-label">API Anahtarı</label>
+                                        <input type="password" class="form-control" id="apiKey" placeholder="sk-...">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Eğitim Verileri</label>
+                                        <div class="form-text mb-2">Sistemin öğrenmesi için teknik dokümanları yükleyin:</div>
+                                        <input type="file" class="form-control" multiple>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Ayarları Kaydet</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chatbot Modal -->
+    <div class="modal fade" id="aiChatModal" tabindex="-1" aria-labelledby="aiChatModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="aiChatModalLabel">AI Asistanı</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body" style="height: 400px; overflow-y: auto;">
+                    <div id="chatMessages" class="d-flex flex-column" style="min-height: 100%;">
+                        <div class="chat-message ai-message">
+                            Merhaba! Ben MehmetEndüstriyelTakip yapay zeka asistanınızım. Üretim durumu, malzeme stokları, siparişler veya teknik konularda size nasıl yardımcı olabilirim?
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex">
+                    <input type="text" id="aiChatInput" class="form-control me-2" placeholder="Sorunuzu yazın...">
+                    <button type="button" id="sendChatBtn" class="btn btn-primary">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chatbot Button (in fixed position) -->
+    <div class="ai-chatbot">
+        <div id="ai-chatbot-btn" class="ai-chatbot-btn">
+            <i class="bi bi-robot"></i>
+            <span class="notification-badge">1</span>
+        </div>
+    </div>
+
+    <!-- New Order Modal -->
+    <div class="modal fade" id="newOrderModal" tabindex="-1" aria-labelledby="newOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newOrderModalLabel">Yeni Sipariş Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="orderNumber" class="form-label">Sipariş No</label>
+                                <input type="text" class="form-control" id="orderNumber" value="AUTO-GENERATED" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="orderDate" class="form-label">Sipariş Tarihi</label>
+                                <input type="date" class="form-control" id="orderDate">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="customer" class="form-label">Müşteri</label>
+                                <select class="form-select" id="customer">
+                                    <option selected>Seçiniz</option>
+                                    <option>AYEDAŞ</option>
+                                    <option>BEDAŞ</option>
+                                    <option>TEİAŞ</option>
+                                    <option>ENERJİSA</option>
+                                    <option>OSMANİYE ELEKTRİK</option>
+                                    <option>DİĞER</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="projectNumber" class="form-label">Proje No</label>
+                                <input type="text" class="form-control" id="projectNumber">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="deliveryDate" class="form-label">Planlanan Teslim Tarihi</label>
+                                <input type="date" class="form-control" id="deliveryDate">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="incoterm" class="form-label">Teslim Şekli (Incoterm)</label>
+                                <select class="form-select" id="incoterm">
+                                    <option selected>Seçiniz</option>
+                                    <option>Nakliye Dahil, İndirme Hariç</option>
+                                    <option>FCA - Fabrika Teslim</option>
+                                    <option>FOB - Gemi Bordasında Teslim</option>
+                                    <option>CIF - Mal Bedeli, Sigorta ve Navlun Ödenmiş Olarak Teslim</option>
+                                </select>
+                            </div>
+                        </div>
+                        <hr>
+                        <h5 class="mb-3">Hücre Bilgileri</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="cellType" class="form-label">Hücre Tipi</label>
+                                <select class="form-select" id="cellType">
+                                    <option selected>Seçiniz</option>
+                                    <option>RM 36 CB</option>
+                                    <option>RM 36 LB</option>
+                                    <option>RM 36 FL</option>
+                                    <option>RMU</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="quantity" class="form-label">Miktar</label>
+                                <input type="number" class="form-control" id="quantity" min="1" value="1">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="cellCode" class="form-label">Hücre Kodu</label>
+                                <input type="text" class="form-control" id="cellCode">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="voltage" class="form-label">Çalışma Gerilimi</label>
+                                <select class="form-select" id="voltage">
+                                    <option selected>36kV</option>
+                                    <option>24kV</option>
+                                    <option>12kV</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="current" class="form-label">Nominal Çalışma Akımı</label>
+                                <select class="form-select" id="current">
+                                    <option selected>630A</option>
+                                    <option>1250A</option>
+                                    <option>2000A</option>
+                                    <option>4000A</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="shortCircuit" class="form-label">Kısa Devre Akımı</label>
+                                <select class="form-select" id="shortCircuit">
+                                    <option selected>16kA</option>
+                                    <option>20kA</option>
+                                    <option>25kA</option>
+                                    <option>31.5kA</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="controlVoltage" class="form-label">Kontrol Gerilimi</label>
+                                <select class="form-select" id="controlVoltage">
+                                    <option selected>24 VDC</option>
+                                    <option>48 VDC</option>
+                                    <option>110 VDC</option>
+                                    <option>220 VAC</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cellDescription" class="form-label">Teknik Değer ve Ürün Tanımı</label>
+                            <textarea class="form-control" id="cellDescription" rows="2"></textarea>
+                        </div>
+                        <hr>
+                        <h5 class="mb-3">Ekipman Seçimleri</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="currentTransformer" class="form-label">Akım Trafosu</label>
+                                <select class="form-select" id="currentTransformer">
+                                    <option selected>Seçiniz</option>
+                                    <option>200-400/5-5A 5P20 7,5/15VA</option>
+                                    <option>300-600/5-5A 5P20 7,5/15VA</option>
+                                    <option>400-800/5-5A 5P20 7,5/15VA</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="voltageTransformer" class="form-label">Gerilim Trafosu (Canias Kodu)</label>
+                                <input type="text" class="form-control" id="voltageTransformer">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="breakerMotor" class="form-label">Kesici Motor Bobin</label>
+                                <input type="text" class="form-control" id="breakerMotor" value="24 VDC">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="disconnectorMotor" class="form-label">Ayırıcı Motor Bobin</label>
+                                <input type="text" class="form-control" id="disconnectorMotor" value="24 VDC">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="relay" class="form-label">Röle (Canias Kodu)</label>
+                                <input type="text" class="form-control" id="relay" value="137998%">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="energyAnalyzer" class="form-label">Enerji Analizörü (Canias Kodu)</label>
+                                <input type="text" class="form-control" id="energyAnalyzer">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="surgeArrester" class="form-label">AGD</label>
+                                <input type="text" class="form-control" id="surgeArrester" value="OVI+S (10nf)">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="meter" class="form-label">Sayaç (Canias Kodu)</label>
+                                <input type="text" class="form-control" id="meter">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="fuse" class="form-label">YG Sigorta (Marka, Tip)</label>
+                                <input type="text" class="form-control" id="fuse">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="voltageIndicator" class="form-label">Gerilim Gösterge Tipi</label>
+                                <input type="text" class="form-control" id="voltageIndicator">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="dcSupply" class="form-label">DC Besleme Grubu</label>
+                                <input type="text" class="form-control" id="dcSupply">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cableHead" class="form-label">Kablo Başlığı (Canias Kodu)</label>
+                                <input type="text" class="form-control" id="cableHead" value="120170%">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="busbar" class="form-label">Diziliş Bara (Canias Kodu)</label>
+                                <input type="text" class="form-control" id="busbar" value="109367%">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="closureDetail" class="form-label">Kapama Detayı</label>
+                                <input type="text" class="form-control" id="closureDetail">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="otherFeatures" class="form-label">Diğer Özellikler</label>
+                            <textarea class="form-control" id="otherFeatures" rows="2" placeholder="Örneğin: *Motorlu *Kablo başlıkları Euromold marka. *UKD 10 m."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Özel Tasarım Gerekli Mi?</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="customDesign" id="customDesignNo" checked>
+                                <label class="form-check-label" for="customDesignNo">
+                                    Gerekli değil
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="customDesign" id="customDesignYes">
+                                <label class="form-check-label" for="customDesignYes">
+                                    Gerekli
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kilitleme Çalışması Gerekli Mi?</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="lockingWork" id="lockingWorkNo" checked>
+                                <label class="form-check-label" for="lockingWorkNo">
+                                    Gerekli değil
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="lockingWork" id="lockingWorkYes">
+                                <label class="form-check-label" for="lockingWorkYes">
+                                    Gerekli
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Etiket ve Dil Bilgileri</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="standardTurkish" checked>
+                                <label class="form-check-label" for="standardTurkish">
+                                    Standart Türkçe
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="energysaStandard">
+                                <label class="form-check-label" for="energysaStandard">
+                                    Standart EnerjiSA RM + RMU (RM36CB'nin ayırıcılarında sayıcı olacak.)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="referenceDocuments" class="form-label">Referans Doküman No</label>
+                            <textarea class="form-control" id="referenceDocuments" rows="2" placeholder="Örneğin: *TEDAŞ-MLZ/95-002.D *EnerjiSA güncel ek şartnameleri"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comments" class="form-label">Yorumlar</label>
+                            <textarea class="form-control" id="comments" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <button type="button" class="btn btn-primary">Siparişi Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Document Modal -->
+    <div class="modal fade" id="uploadDocumentModal" tabindex="-1" aria-labelledby="uploadDocumentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadDocumentModalLabel">Teknik Doküman Yükle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="documentName" class="form-label">Doküman Adı</label>
+                            <input type="text" class="form-control" id="documentName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="documentType" class="form-label">Doküman Türü</label>
+                            <select class="form-select" id="documentType">
+                                <option selected>Seçiniz</option>
+                                <option>Teknik Çizim</option>
+                                <option>Montaj Talimatı</option>
+                                <option>Test Prosedürü</option>
+                                <option>Teknik Şartname</option>
+                                <option>Diğer</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="documentDepartment" class="form-label">İlgili Birim</label>
+                            <select class="form-select" id="documentDepartment">
+                                <option selected>Seçiniz</option>
+                                <option>Elektrik Tasarım</option>
+                                <option>Mekanik Tasarım</option>
+                                <option>Satın Alma</option>
+                                <option>Mekanik Üretim</option>
+                                <option>İç Montaj</option>
+                                <option>Kablaj</option>
+                                <option>Genel Montaj</option>
+                                <option>Test</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="documentRevision" class="form-label">Revizyon No</label>
+                            <input type="text" class="form-control" id="documentRevision" placeholder="Örneğin: 1.0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="documentFile" class="form-label">Dosya Seçin</label>
+                            <input class="form-control" type="file" id="documentFile">
+                        </div>
+                        <div class="mb-3">
+                            <label for="documentDescription" class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="documentDescription" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <button type="button" class="btn btn-primary">Yükle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addUserModalLabel">Yeni Kullanıcı Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">Ad Soyad</label>
+                            <input type="text" class="form-control" id="userName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="userEmail" class="form-label">E-posta</label>
+                            <input type="email" class="form-control" id="userEmail">
+                        </div>
+                        <div class="mb-3">
+                            <label for="userDepartment" class="form-label">Departman</label>
+                            <select class="form-select" id="userDepartment">
+                                <option selected>Seçiniz</option>
+                                <option>Satış</option>
+                                <option>Proje Yönetimi</option>
+                                <option>Elektrik Tasarım</option>
+                                <option>Mekanik Tasarım</option>
+                                <option>Satın Alma</option>
+                                <option>Mekanik Üretim</option>
+                                <option>İç Montaj</option>
+                                <option>Kablaj</option>
+                                <option>Genel Montaj</option>
+                                <option>Test</option>
+                                <option>Yönetim</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userRole" class="form-label">Rol</label>
+                            <select class="form-select" id="userRole">
+                                <option selected>Kullanıcı</option>
+                                <option>Yönetici</option>
+                                <option>Süper Yönetici</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userPassword" class="form-label">Şifre</label>
+                            <input type="password" class="form-control" id="userPassword">
+                        </div>
+                        <div class="mb-3">
+                            <label for="userPasswordConfirm" class="form-label">Şifre Tekrar</label>
+                            <input type="password" class="form-control" id="userPasswordConfirm">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="userActive" checked>
+                                <label class="form-check-label" for="userActive">
+                                    Kullanıcı aktif
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <button type="button" class="btn btn-primary">Kullanıcı Ekle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chatbot Modal -->
+    <div class="modal fade" id="aiChatModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Yapay Zeka Asistan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="height: 400px; overflow-y: auto;">
+                    <div id="chatMessages"></div>
+                </div>
+                <div class="modal-footer">
+                    <div class="input-group">
+                        <input type="text" id="aiChatInput" class="form-control" placeholder="Soru sorun...">
+                        <button class="btn btn-primary" id="sendChatBtn">Gönder</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="core/main.js"></script>
+    <script src="core/app.js"></script>
+    
+    <!-- Utility Scripts -->
+    <script src="utils/event-bus.js"></script>
+    <script src="services/api-service.js"></script>
+    <script src="services/erp-service.js"></script>
+    <script src="services/ai-service.js"></script>
+    
+    <!-- Module Scripts -->
+    <script src="modules/dashboard/dashboard.js"></script>
+    <script src="modules/orders/orders.js"></script>
+    <script src="modules/production/production.js"></script>
+    <script src="modules/purchasing/purchasing.js"></script>
+    
+    <!-- AI Integration Scripts -->
+    <script src="modules/ai/advanced-ai.js"></script>
+    <script src="modules/ai/chatbot.js"></script>
+    <script src="modules/ai/ai-integration.js"></script>
+    <script src="modules/ai/ai-analytics.js"></script>
+    
+    <script>
+        // Sayfa yüklendiğinde çalışacak kodlar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dashboard Charts
+            const productionCtx = document.getElementById('productionChart').getContext('2d');
+            const productionChart = new Chart(productionCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
+                    datasets: [
+                        {
+                            label: 'Planlanan Üretim',
+                            data: [180, 170, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280],
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Gerçekleşen Üretim',
+                            data: [175, 165, 185, 195, 205, 215, 225, 235, 245, 255, 265, 275],
+                            borderColor: '#2ecc71',
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Adet'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const cellTypeCtx = document.getElementById('cellTypeChart').getContext('2d');
+            const cellTypeChart = new Chart(cellTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['RM 36 CB', 'RM 36 LB', 'RM 36 FL', 'RMU'],
+                    datasets: [{
+                        data: [45, 30, 15, 10],
+                        backgroundColor: [
+                            '#3498db',
+                            '#2ecc71',
+                            '#f39c12',
+                            '#9b59b6'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+
+            // Materials Forecast Chart
+            const materialForecastCtx = document.getElementById('materialForecastChart').getContext('2d');
+            const materialForecastChart = new Chart(materialForecastCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Siemens 7SR1003', 'KAP-80/190-95', 'M480TB Kablo Başlığı', '582mm Bara', '432mm Bara'],
+                    datasets: [{
+                        label: 'Stok Miktarı',
+                        data: [2, 3, 12, 25, 18],
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                    }, {
+                        label: 'Minimum Stok',
+                        data: [5, 5, 15, 10, 10],
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: false,
+                        },
+                        y: {
+                            stacked: false,
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Capacity Chart
+            const capacityCtx = document.getElementById('capacityChart').getContext('2d');
+            const capacityChart = new Chart(capacityCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Elektrik Tasarım', 'Mekanik Tasarım', 'Satın Alma', 'Mekanik Üretim', 'İç Montaj', 'Kablaj', 'Genel Montaj', 'Test'],
+                    datasets: [
+                        {
+                            label: 'Mevcut Kapasite',
+                            data: [90, 85, 80, 75, 70, 65, 60, 55],
+                            backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                            borderColor: '#3498db',
+                            pointBackgroundColor: '#3498db',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#3498db',
+                        },
+                        {
+                            label: 'Kullanılan Kapasite',
+                            data: [70, 65, 60, 55, 50, 45, 40, 35],
+                            backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                            borderColor: '#2ecc71',
+                            pointBackgroundColor: '#2ecc71',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#2ecc71',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+
+            // Delivery Chart
+            const deliveryCtx = document.getElementById('deliveryChart').getContext('2d');
+            const deliveryChart = new Chart(deliveryCtx, {
+                type: 'line',
+                data: {
+                    labels: ['1. Hafta', '2. Hafta', '3. Hafta', '4. Hafta'],
+                    datasets: [
+                        {
+                            label: 'Planlanan Teslimat',
+                            data: [5, 8, 12, 15],
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Gerçekleşen Teslimat',
+                            data: [4, 7, 10, 13],
+                            borderColor: '#2ecc71',
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Adet'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Reports Charts
+            const efficiencyCtx = document.getElementById('efficiencyChart').getContext('2d');
+            const efficiencyChart = new Chart(efficiencyCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran'],
+                    datasets: [{
+                        label: 'Üretim Verimliliği (%)',
+                        data: [85, 82, 88, 90, 87, 92],
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Verimlilik (%)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const delayCtx = document.getElementById('delayChart').getContext('2d');
+            const delayChart = new Chart(delayCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Malzeme Eksikliği', 'Tasarım Gecikmesi', 'Üretim Problemi', 'Test Hatası', 'Diğer'],
+                    datasets: [{
+                        data: [45, 20, 15, 10, 10],
+                        backgroundColor: [
+                            '#e74c3c',
+                            '#f39c12',
+                            '#3498db',
+                            '#2ecc71',
+                            '#9b59b6'
+                        ],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+
+            const unitTimeCtx = document.getElementById('unitTimeChart').getContext('2d');
+            const unitTimeChart = new Chart(unitTimeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Elektrik Tasarım', 'Mekanik Tasarım', 'Satın Alma', 'Mekanik Üretim', 'İç Montaj', 'Kablaj', 'Genel Montaj', 'Test'],
+                    datasets: [
+                        {
+                            label: 'Ortalama Süre (gün)',
+                            data: [3, 4, 7, 5, 4, 3, 2, 1],
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        },
+                        {
+                            label: 'Planlanan Süre (gün)',
+                            data: [2, 3, 5, 4, 3, 2, 2, 1],
+                            backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Gün'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const customerCtx = document.getElementById('customerChart').getContext('2d');
+            const customerChart = new Chart(customerCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: ['AYEDAŞ', 'BEDAŞ', 'TEİAŞ', 'ENERJİSA', 'DİĞER'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [
+                            '#3498db',
+                            '#2ecc71',
+                            '#f39c12',
+                            '#9b59b6',
+                            '#e74c3c'
+                        ],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+
+            // Production Calendar
+            document.addEventListener('DOMContentLoaded', function() {
+                const calendarEl = document.getElementById('productionCalendar');
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    events: [
+                        {
+                            title: '#0424-1251 - RM 36 CB',
+                            start: '2024-11-10',
+                            end: '2024-11-15',
+                            color: '#e74c3c'
+                        },
+                        {
+                            title: '#0424-1245 - RM 36 CB',
+                            start: '2024-11-15',
+                            end: '2024-11-20',
+                            color: '#f39c12'
+                        },
+                        {
+                            title: '#0424-1239 - RM 36 LB',
+                            start: '2024-11-20',
+                            end: '2024-11-25',
+                            color: '#3498db'
+                        },
+                        {
+                            title: '#0424-1235 - RM 36 FL',
+                            start: '2024-11-25',
+                            end: '2024-11-30',
+                            color: '#2ecc71'
+                        }
+                    ]
+                });
+                calendar.render();
+            });
+
+            // Calendar initialization
+            const calendarEl = document.getElementById('calendar');
+            if (calendarEl) {
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    events: [
+                        {
+                            title: '#0424-1251 - RM 36 CB',
+                            start: '2024-11-10',
+                            end: '2024-11-15',
+                            color: '#e74c3c'
+                        },
+                        {
+                            title: '#0424-1245 - RM 36 CB',
+                            start: '2024-11-15',
+                            end: '2024-11-20',
+                            color: '#f39c12'
+                        },
+                        {
+                            title: '#0424-1239 - RM 36 LB',
+                            start: '2024-11-20',
+                            end: '2024-11-25',
+                            color: '#3498db'
+                        },
+                        {
+                            title: '#0424-1235 - RM 36 FL',
+                            start: '2024-11-25',
+                            end: '2024-11-30',
+                            color: '#2ecc71'
+                        }
+                    ]
+                });
+                calendar.render();
+            }
+
+            // Chatbot functions
+            document.getElementById('ai-chatbot-btn').addEventListener('click', function() {
+                // AI modülü kullanılabilir durumdaysa doğrudan chatbot fonksiyonunu çağır
+                if (typeof toggleChatbot === 'function') {
+                    toggleChatbot();
+                } else {
+                    // Fallback olarak modal göster
+                    const modal = new bootstrap.Modal(document.getElementById('aiChatModal'));
+                    modal.show();
+                }
+            });
+
+            document.getElementById('sendChatBtn').addEventListener('click', async function() {
+                const question = document.getElementById('aiChatInput').value;
+                if (!question.trim()) return;
+                
+                addChatMessage('user', question);
+                document.getElementById('aiChatInput').value = '';
+                
+                // AI modülü kullanılabilir durumdaysa
+                if (typeof generateBotResponse === 'function') {
+                    const chatMessages = document.getElementById('chatMessages');
+                    await generateBotResponse(question, chatMessages);
+                } else {
+                    // Fallback olarak simülasyon fonksiyonu
+                    setTimeout(() => {
+                        const response = simulateAIResponse(question);
+                        addChatMessage('ai', response);
+                    }, 1000);
+                }
+            });
+
+            function addChatMessage(sender, message) {
+                const chatMessages = document.getElementById('chatMessages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${sender}-message`;
+                messageDiv.textContent = message;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function simulateAIResponse(question) {
+                // Gerçek AI servisi ile yanıt al
+                try {
+                    // Öncelikle AIService üzerinden DeepSeek modelini kullanmayı dene
+                    if (typeof AIService !== 'undefined') {
+                        // Önce loading mesajı göster
+                        return "Yanıt hazırlanıyor...";
+                        
+                        // Asenkron işlemi başlat (bu sadece kullanıcı arayüzünü bloke etmemek için)
+                        setTimeout(async () => {
+                            try {
+                                const response = await AIService.askDeepSeek(question);
+                                // Yanıt geldiğinde güncelle
+                                const chatMessages = document.getElementById('chatMessages');
+                                const lastMessage = chatMessages.lastChild;
+                                if (lastMessage && lastMessage.classList.contains('bot-message')) {
+                                    lastMessage.textContent = response;
+                                }
+                            } catch (error) {
+                                console.error("AI yanıt hatası:", error);
+                                // Fallback demo yanıtları
+                                let fallbackResponse = getFallbackResponse(question);
+                                
+                                // Yanıtı güncelle
+                                const chatMessages = document.getElementById('chatMessages');
+                                const lastMessage = chatMessages.lastChild;
+                                if (lastMessage && lastMessage.classList.contains('bot-message')) {
+                                    lastMessage.textContent = fallbackResponse;
+                                }
+                            }
+                        }, 100);
+                        
+                        return "Yanıt hazırlanıyor...";
+                    } else {
+                        // AIService yoksa demo yanıtları kullan
+                        return getFallbackResponse(question);
+                    }
+                } catch (error) {
+                    console.error("AI yanıt hatası:", error);
+                    return getFallbackResponse(question);
+                }
+            }
+            
+            // Yedek yanıt fonksiyonu
+            function getFallbackResponse(question) {
+                // Basit keyword tabanlı yanıtlar
+                if (question.includes('malzeme')) {
+                    return "Kritik seviyenin altında 2 malzeme bulunuyor: Siemens 7SR1003-1JA20-2DA0+ZY20 24VDC (Stok: 2, Önerilen: 5) ve KAP-80/190-95 Akım Trafosu (Stok: 3, Önerilen: 5).";
+                } else if (question.includes('üretim') || question.includes('süre')) {
+                    return "Mevcut üretim planına göre ortalama tamamlama süresi 14 gün. Gecikme riski %15 olarak hesaplanmıştır.";
+                } else if (question.includes('hücre') || question.includes('RM')) {
+                    return "RM 36 CB hücresinin ortalama üretim süresi 12 iş günüdür. Malzeme temin süreleri dahil değildir.";
+                }
+                return "Soru anlaşıldı. Detaylı analiz için sistem verilerini inceliyorum...";
+            }
+            
+            // Yapay zeka yanıtı oluşturma
+            async function generateBotResponse(question, chatMessages) {
+                try {
+                    // Öncelikli olarak chatbot.js içindeki fonksiyonları kullanmayı dene
+                    if (typeof window.sendChatMessage === 'function') {
+                        // Chatbot modülü yüklü, onu kullan
+                        return simulateAIResponse(question);
+                    } else {
+                        // AIService ile entegrasyon dene
+                        if (typeof AIService !== 'undefined') {
+                            try {
+                                return await AIService.askDeepSeek(question);
+                            } catch (error) {
+                                console.error("AIService hatası:", error);
+                                return getFallbackResponse(question);
+                            }
+                        } else {
+                            // Yedek yanıt
+                            return getFallbackResponse(question);
+                        }
+                    }
+                } catch (error) {
+                    console.error("AI yanıt oluşturma hatası:", error);
+                    return "Yanıt oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.";
+                }
+            }
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+</body>
+</html>
