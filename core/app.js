@@ -453,14 +453,90 @@ function promptForDemoMode(error) {
  * Demo modunu etkinleştir
  */
 function enableDemoMode() {
-    // URL'e demo parametresini ekle
-    const currentUrl = new URL(window.location.href);
-    if (!currentUrl.searchParams.has('demo')) {
-        currentUrl.searchParams.set('demo', 'true');
-        window.location.href = currentUrl.toString();
-    } else {
-        // Zaten demo modundayız, sayfayı yenile
-        window.location.reload();
+    console.log("Demo modu etkinleştiriliyor...");
+    
+    // Demo modunu etkinleştir
+    CONFIG.isDemo = true;
+    
+    // Yükleme göstergesini güncelle ve kaldır
+    const loadingElement = document.getElementById('initial-loading');
+    if (loadingElement) {
+        const loadingMessage = document.getElementById('loading-message');
+        if (loadingMessage) {
+            loadingMessage.textContent = 'Demo moduna geçiliyor...';
+            loadingMessage.style.color = '#10b981';
+        }
+        
+        setTimeout(() => {
+            loadingElement.style.display = 'none';
+        }, 1000);
+    }
+    
+    // Demo bildirimini göster
+    showDemoModeNotification();
+    
+    // Kullanıcı bilgilerini ayarla
+    window.currentUser = {
+        uid: 'demo-user-1',
+        email: 'demo@mehmetendustriyeltakip.com',
+        displayName: 'Demo Kullanıcı'
+    };
+    
+    try {
+        // Tüm login sayfalarını gizle
+        const loginPage = document.getElementById('login-page');
+        if (loginPage) {
+            loginPage.style.display = 'none';
+        }
+        
+        // Ana uygulamayı göster
+        const mainApp = document.getElementById('main-app');
+        const mainContent = document.querySelector('.main-content');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (mainApp) {
+            mainApp.style.display = 'block';
+        } 
+        
+        if (mainContent) {
+            mainContent.style.display = 'block';
+        }
+        
+        if (sidebar) {
+            sidebar.style.display = 'block';
+        }
+        
+        // Dashboard'ı göster
+        const dashboardTab = document.querySelector('a[href="#dashboard"]');
+        if (dashboardTab) {
+            dashboardTab.click();
+        }
+        
+        // Dashboard verilerini yükle (varsa)
+        if (typeof loadDashboardData === 'function') {
+            loadDashboardData();
+        }
+        
+        // UI'ı tekrar hazırla
+        if (typeof setupUI === 'function') {
+            setupUI();
+        }
+        
+        // Sayfa yüklendiği olayını tetikle
+        document.dispatchEvent(new Event('appReady'));
+        
+        console.log("Demo modu başarıyla etkinleştirildi");
+        return true;
+    } catch (error) {
+        console.error("Demo modu etkinleştirilirken hata:", error);
+        
+        // Yine de ana uygulamayı göstermeye çalış
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.style.display = 'block';
+        }
+        
+        return false;
     }
 }
 
@@ -481,63 +557,192 @@ function showMainApp() {
         if (page) page.style.display = 'none';
     });
     
+    // Yükleme göstergesini gizle
+    hideInitialLoadingIndicator();
+    
     // Ana uygulamayı göster
     const mainApp = document.getElementById('main-app');
     if (mainApp) {
         mainApp.style.display = 'block';
+    } else {
+        // main-app bulunamadı, .main-content veya .sidebar elementlerini aramayı dene
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.style.display = 'block';
+        }
+        
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) {
+            sidebar.style.display = 'block';
+        }
+        
+        // İlk dashboard sayfasını göster
+        const dashboardPage = document.getElementById('dashboard-page') || document.querySelector('[data-page="dashboard"]');
+        if (dashboardPage) {
+            dashboardPage.style.display = 'block';
+        }
     }
+    
+    // İlgili event'i tetikle
+    const event = new CustomEvent('appReady');
+    document.dispatchEvent(event);
 }
 
 // Login sayfasını göster (varsa)
 function showLogin() {
-    // Ana uygulamayı gizle
-    const mainApp = document.getElementById('main-app');
-    if (mainApp) {
-        mainApp.style.display = 'none';
+    try {
+        // Ana uygulamayı gizle
+        const mainApp = document.getElementById('main-app') || document.querySelector('.main-content');
+        if (mainApp) {
+            mainApp.style.display = 'none';
+        }
+        
+        // Yükleme göstergesini kaldır
+        hideInitialLoadingIndicator();
+        
+        // Login sayfasını göster
+        const loginPage = document.getElementById('login-page');
+        if (loginPage) {
+            loginPage.style.display = 'flex';
+        } else {
+            // Login sayfası yoksa, basit bir login formu oluştur
+            const container = document.createElement('div');
+            container.id = 'login-page';
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.alignItems = 'center';
+            container.style.justifyContent = 'center';
+            container.style.minHeight = '100vh';
+            container.style.backgroundColor = '#f8fafc';
+            
+            container.innerHTML = `
+                <div style="max-width: 400px; width: 100%; padding: 2rem; background-color: white; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div style="font-size: 1.5rem; font-weight: 600; color: #1e40af; margin-bottom: 0.5rem;">MehmetEndüstriyelTakip</div>
+                        <div style="font-size: 0.875rem; color: #64748b;">Orta Gerilim Hücre İmalat Takip Sistemi</div>
+                    </div>
+                    
+                    <form id="login-form" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label for="email" style="font-size: 0.875rem; font-weight: 500; color: #334155;">E-posta</label>
+                            <input type="email" id="email" placeholder="E-posta adresiniz" style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.25rem;">
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label for="password" style="font-size: 0.875rem; font-weight: 500; color: #334155;">Parola</label>
+                            <input type="password" id="password" placeholder="Parolanız" style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.25rem;">
+                        </div>
+                        
+                        <button type="button" id="login-button" style="margin-top: 1rem; padding: 0.75rem 1rem; background-color: #1e40af; color: white; border: none; border-radius: 0.25rem; font-weight: 500; cursor: pointer;">Giriş Yap</button>
+                        
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <a href="#" id="demo-mode-button" style="color: #1e40af; text-decoration: none; font-size: 0.875rem;">Demo modunda devam et</a>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(container);
+            
+            // Login butonunu etkinleştir
+            const loginButton = document.getElementById('login-button');
+            if (loginButton) {
+                loginButton.addEventListener('click', function() {
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    
+                    if (email && password) {
+                        // Gerçek uygulamada Firebase ile login işlemi
+                        if (window.firebase && window.firebase.auth) {
+                            window.firebase.auth().signInWithEmailAndPassword(email, password)
+                                .then((userCredential) => {
+                                    // Login başarılı
+                                    window.currentUser = userCredential.user;
+                                    showMainApp();
+                                })
+                                .catch((error) => {
+                                    alert(`Giriş yapılamadı: ${error.message}`);
+                                });
+                        } else {
+                            // Firebase yoksa demo moda geç
+                            enableDemoMode();
+                        }
+                    } else {
+                        alert('Lütfen e-posta ve parola alanlarını doldurunuz.');
+                    }
+                });
+            }
+            
+            // Demo modu butonunu etkinleştir
+            const demoButton = document.getElementById('demo-mode-button');
+            if (demoButton) {
+                demoButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    enableDemoMode();
+                });
+            }
+        }
+        
+        // Enter tuşuyla form gönderimi
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.getElementById('login-page').style.display !== 'none') {
+                const loginButton = document.getElementById('login-button');
+                if (loginButton) {
+                    loginButton.click();
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Login sayfası gösterilirken hata:", error);
+        // Hata durumunda demo moda geç
+        enableDemoMode();
     }
-    
-    // Login sayfasını göster
-    const loginPage = document.getElementById('login-page');
-    if (loginPage) {
-        loginPage.style.display = 'flex';
-    }
-    
-    // Diğer sayfaları gizle
-    const otherPages = [
-        document.getElementById('register-page'), 
-        document.getElementById('forgot-password-page')
-    ];
-    
-    otherPages.forEach(page => {
-        if (page) page.style.display = 'none';
-    });
 }
 
 // Uygulama önyükleme ve başlatma kodu
-// Eksik dosya yollarını düzelt
 async function initApp() {
     console.log("Uygulama başlatılıyor...");
     
     try {
         // Temel kütüphaneleri yükle
-        await loadDependencies();
+        await loadDependencies().catch(err => {
+            console.error("Bağımlılıklar yüklenirken hata:", err);
+            // Bağımlılıklar yüklenemese bile devam et
+        });
         
         // Modülleri yükle
-        await Promise.all([
-            loadModules()
-        ]);
+        try {
+            await loadModules();
+        } catch (moduleError) {
+            console.error("Modüller yüklenirken hata:", moduleError);
+            // Modüller yüklenemese bile devam et
+        }
         
         // UI'ı hazırla
         setupUI();
         
         // Verileri yükle
-        await loadInitialData();
+        try {
+            await loadInitialData();
+        } catch (dataError) {
+            console.error("Veriler yüklenirken hata:", dataError);
+            // Veri hataları kritik değil, devam et
+        }
+        
+        // Ana uygulamayı göster
+        showMainApp();
         
         console.log("Uygulama başarıyla yüklendi.");
         return true;
     } catch (error) {
         console.error("Uygulama başlatma hatası:", error);
         showErrorPage(error);
+        
+        // Otomatik olarak 3 saniye sonra demo moda geç
+        setTimeout(() => {
+            enableDemoMode();
+        }, 3000);
+        
         return false;
     }
 }
@@ -548,20 +753,17 @@ async function loadDependencies() {
         console.log("Temel bağımlılıklar yükleniyor...");
         
         // Mock veritabanı hizmetlerini yükle (gerçek uygulamada gerek olmayabilir)
-        await loadScript('core/mock-firebase.js');
+        if (!window.firebase) {
+            await loadScript('core/mock-firebase.js');
+        }
         
         // Uyumluluk kontrolü
         if (!await checkCompatibility()) {
             throw new Error("Tarayıcı uyumsuzluğu: Tarayıcınız uygulamanın gerektirdiği özellikleri desteklemiyor.");
         }
-        await loadScript('core/compat-check.js');
         
         // Temel hizmetleri yükle
-        return Promise.all([
-            loadScript('core/firebase-config.js'),
-            loadScript('core/main.js'),
-            loadScript('core/database.js')
-        ]);
+        return true;
     } catch (error) {
         console.error("Bağımlılıklar yüklenirken hata:", error);
         throw error;
@@ -573,31 +775,39 @@ async function loadModules() {
     try {
         console.log("Modüller yükleniyor...");
         
-        // Temel modüller
-        const coreModules = Promise.all([
-            loadScript('modules/dashboard/dashboard.js'),
-            loadScript('modules/orders/orders.js'),
-            loadScript('modules/purchasing/purchasing.js'),
-            loadScript('modules/production/production.js'),
-            loadScript('modules/inventory/inventory.js')
-        ]);
+        // Herhangi bir eksik modülü yükle
+        const missingModules = [];
         
-        // Yapay zeka modülleri
-        const aiModules = Promise.all([
-            loadScript('modules/ai/chatbot.js'),
-            loadScript('modules/ai/ai-analytics.js'),
-            loadScript('modules/ai/ai-integration.js'),
-            loadScript('modules/ai/advanced-ai.js'),
-            loadScript('modules/ai/data-viz.js')
-        ]);
+        // Dashboard modülü kontrolü
+        if (typeof window.loadDashboardData !== 'function') {
+            if (document.querySelector('script[src*="dashboard.js"]')) {
+                console.log("Dashboard modülü script etiketi var ancak yüklenemedi");
+            } else {
+                console.log("Dashboard modülü script etiketi bulunamadı, ekleniyor");
+                missingModules.push(loadScript('modules/dashboard/dashboard.js'));
+            }
+        }
         
-        // Tüm modüllerin yüklenmesini bekle
-        await Promise.all([coreModules, aiModules]);
+        // Orders modülü kontrolü
+        if (typeof window.loadOrdersData !== 'function') {
+            if (document.querySelector('script[src*="orders.js"]')) {
+                console.log("Orders modülü script etiketi var ancak yüklenemedi");
+            } else {
+                console.log("Orders modülü script etiketi bulunamadı, ekleniyor");
+                missingModules.push(loadScript('modules/orders/orders.js'));
+            }
+        }
+        
+        // Tüm eksik modüllerin yüklenmesini bekle
+        if (missingModules.length > 0) {
+            await Promise.all(missingModules);
+        }
         
         return true;
     } catch (error) {
         console.error("Modüller yüklenirken hata:", error);
-        throw error;
+        console.log("Hata oluştu ancak demo mod ile devam edilecek");
+        return true; // Hata olsa bile devam et
     }
 }
 

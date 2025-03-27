@@ -19,7 +19,7 @@ const AIIntegrationModule = (function() {
         
         try {
             // Gelişmiş AI asistanı yükle
-            await loadScript('modules/ai/advanced-ai.js');
+            await loadScript('../modules/ai/advanced-ai.js');
             console.log("Gelişmiş AI asistanı yüklendi");
             
             // Tam entegrasyon için diğer gerekli modülleri yükle
@@ -513,13 +513,24 @@ const AIIntegrationModule = (function() {
         }, 500);
     }
     
-    // Yardımcı script yükleme fonksiyonu
-    function loadScript(src) {
+    // Script yükleme yardımcı fonksiyonu
+    function loadScript(url) {
         return new Promise((resolve, reject) => {
+            console.log(`Script yükleniyor: ${url}`);
             const script = document.createElement('script');
-            script.src = src;
-            script.onload = () => resolve();
-            script.onerror = (e) => reject(e);
+            script.src = url;
+            script.async = true;
+            
+            script.onload = () => {
+                console.log(`Script yüklendi: ${url}`);
+                resolve();
+            };
+            
+            script.onerror = (error) => {
+                console.error(`Script yüklenirken hata: ${url}`, error);
+                reject(new Error(`Script yüklenemedi: ${url}`));
+            };
+            
             document.head.appendChild(script);
         });
     }

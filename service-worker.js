@@ -3,203 +3,213 @@
  * Çevrimdışı çalışma ve PWA desteği için
  */
 
-const CACHE_NAME = 'mehmet-endustriyel-takip-v1';
-const ASSETS = [
+const CACHE_NAME = 'mehmet-industrial-cache-v1';
+const OFFLINE_URL = 'offline.html';
+
+// Önbelleğe alınacak dosyalar
+const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/offline.html',
   '/manifest.json',
+  '/core/app.js',
+  '/core/main.js',
+  '/core/mock-firebase.js',
+  '/core/compat-check.js',
+  '/core/firebase-config.js',
+  '/core/database.js',
+  '/core/styles/main.css',
   '/utils/event-bus.js',
   '/services/api-service.js',
   '/services/erp-service.js',
   '/services/ai-service.js',
-  '/config/app-config.js',
-  '/core/main.js',
-  '/core/app.js',
-  '/core/compat-check.js',
-  '/core/firebase-config.js',
-  '/core/mock-firebase.js',
-  '/core/database.js',
-  '/core/styles/main.css',
   '/modules/dashboard/dashboard.js',
   '/modules/orders/orders.js',
   '/modules/production/production.js',
   '/modules/purchasing/purchasing.js',
   '/modules/inventory/inventory.js',
   '/modules/ai/chatbot.js',
+  '/modules/ai/ai-analytics.js',
   '/modules/ai/ai-integration.js',
   '/modules/ai/advanced-ai.js',
-  '/modules/ai/ai-analytics.js',
   '/modules/ai/data-viz.js',
-  '/assets/icons/favicon.png',
-  '/assets/icons/apple-touch-icon.png',
   '/assets/icons/icon-192x192.png',
-  '/assets/icons/icon-384x384.png',
   '/assets/icons/icon-512x512.png',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
   'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'
+  'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-// Service Worker Kurulumu
+// Service Worker Yükleme
 self.addEventListener('install', event => {
-  console.log('Service Worker kurulmaya başlıyor');
+  console.log('Service Worker yükleniyor...');
   
-  // Sayfa önbelleğe alınıyor
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Önbellek oluşturuldu');
-        return cache.addAll(ASSETS);
+        console.log('Dosyalar önbelleğe alınıyor...');
+        return cache.addAll(ASSETS_TO_CACHE);
       })
       .then(() => {
-        console.log('Assets önbelleğe alındı');
+        console.log('Service Worker kurulumu tamamlandı');
         return self.skipWaiting();
       })
       .catch(error => {
-        console.error('Önbelleğe alma hatası:', error);
-        // Hata olsa bile service worker kurulumuna devam et
-        return self.skipWaiting();
+        console.error('Önbellekleme hatası:', error);
       })
   );
 });
 
-// Service Worker Aktifleştirme
+// Service Worker Aktivasyon
 self.addEventListener('activate', event => {
-  console.log('Service Worker aktifleştiriliyor');
+  console.log('Service Worker aktifleştiriliyor...');
   
-  // Eski önbellekleri temizleme
+  // Eski önbellekleri temizle
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.filter(cacheName => {
-          return cacheName !== CACHE_NAME;
-        }).map(cacheName => {
-          console.log('Eski önbellek siliniyor:', cacheName);
-          return caches.delete(cacheName);
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Eski önbellek temizleniyor:', cacheName);
+            return caches.delete(cacheName);
+          }
         })
       );
     }).then(() => {
-      // Service worker tüm istemciler üzerinde aktif hale getirilir
+      console.log('Service Worker artık aktif ve kontrolü ele aldı');
       return self.clients.claim();
     })
   );
 });
 
-// İstekleri Yakalama
+// Fetch İsteklerini Yakalama
 self.addEventListener('fetch', event => {
-  // Sadece GET isteklerini önbelleğe al
-  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
   
-  // API isteklerini önbellekleme - Firebase ve diğer API'ler dışında
-  if (event.request.url.includes('firebaseio.com') || 
-      event.request.url.includes('googleapis.com') || 
-      event.request.url.includes('firebase-settings')) {
+  // Aynı kaynak kontrolleri
+  const isSameOrigin = url.origin === self.location.origin;
+  
+  // API istekleri için özel işlem
+  if (url.pathname.startsWith('/api/')) {
+    return; // API isteklerini işleme, normal ağ isteklerine bırak
+  }
+  
+  // Navigasyon istekleri
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          console.log('Navigasyon isteği başarısız, çevrimdışı sayfasına yönlendiriliyor');
+          return caches.match(OFFLINE_URL);
+        })
+    );
     return;
   }
   
-  event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        // Önbellekte varsa hemen dön
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        
-        // Yoksa ağdan getir ve önbelleğe al
-        return fetch(event.request)
-          .then(response => {
-            // Yanıt geçersizse, direkt dön
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-            
-            // Yanıtın klonunu al ve önbelleğe kaydet
-            let responseToCache = response.clone();
-            
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-            
-            return response;
-          })
-          .catch(error => {
-            // Ağ erişimi yoksa ve önbellekte de yoksa offline sayfasını dön
-            if (event.request.mode === 'navigate') {
-              return caches.match('/offline.html')
-                .then(offlineResponse => {
-                  return offlineResponse || new Response('İnternet bağlantısı yok', {
-                    status: 503,
-                    statusText: 'İnternet bağlantısı yok'
-                  });
+  // Önbelleklenmiş statik varlıklar için "Cache First" stratejisi
+  if (
+    isSameOrigin &&
+    ASSETS_TO_CACHE.some(asset => url.pathname === asset || url.pathname === asset.replace(/^\//, ''))
+  ) {
+    event.respondWith(
+      caches.match(event.request)
+        .then(cachedResponse => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          
+          console.log('Önbellekte bulunmayan dosya talep ediliyor:', url.pathname);
+          return fetch(event.request)
+            .then(response => {
+              // Geçerli bir yanıt alındıysa önbelleğe al
+              if (response && response.status === 200) {
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(event.request, responseClone);
                 });
+              }
+              return response;
+            })
+            .catch(err => {
+              console.error('Fetch hatası:', err);
+              return caches.match(OFFLINE_URL);
+            });
+        })
+    );
+    return;
+  }
+  
+  // Diğer istekler için "Network First" stratejisi
+  event.respondWith(
+    fetch(event.request)
+      .catch(() => {
+        return caches.match(event.request)
+          .then(cachedResponse => {
+            if (cachedResponse) {
+              return cachedResponse;
             }
             
-            console.error('Fetch hatası:', error);
-            throw error;
+            // HTML istekleri için offline sayfasını göster
+            if (event.request.headers.get('Accept').includes('text/html')) {
+              return caches.match(OFFLINE_URL);
+            }
+            
+            // Diğer kaynaklar için 404 döndür
+            return new Response('Kaynak bulunamadı ve önbellekte yok', {
+              status: 404,
+              statusText: 'Not Found'
+            });
           });
       })
   );
 });
 
-// Push Bildirimleri Alma
+// Push Bildirim İşleme
 self.addEventListener('push', event => {
-  console.log('Push alındı:', event);
-  
   if (!event.data) return;
   
   try {
     const data = event.data.json();
     
-    const title = data.title || 'MehmetEndustriyelTakip';
+    // Varsayılan bildirim içeriği
+    const title = data.title || 'MehmetEndüstriyelTakip';
     const options = {
-      body: data.message || 'Yeni bir bildiriminiz var',
-      icon: data.icon || '/assets/icons/favicon.png',
-      badge: '/assets/icons/favicon.png',
-      data: {
-        url: data.url || '/'
-      },
-      actions: data.actions || []
+      body: data.body || 'Yeni bir bildiriminiz var',
+      icon: data.icon || '/assets/icons/icon-192x192.png',
+      badge: data.badge || '/assets/icons/badge-72x72.png',
+      data: { url: data.url || '/' }
     };
     
-    event.waitUntil(
-      self.registration.showNotification(title, options)
-    );
+    event.waitUntil(self.registration.showNotification(title, options));
   } catch (error) {
-    console.error('Push bildirimi işleme hatası:', error);
+    console.error('Push bildirim işleme hatası:', error);
   }
 });
 
-// Bildirim Tıklama
+// Bildirime Tıklama
 self.addEventListener('notificationclick', event => {
-  console.log('Bildirim tıklandı:', event);
-  
   event.notification.close();
   
-  // Tıklanınca belirli bir URL'ye yönlendirme
-  const urlToOpen = event.notification.data?.url || '/';
-  
   event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    })
-    .then(windowClients => {
-      // Açık bir pencere varsa odaklan
-      for (let client of windowClients) {
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
+    clients.matchAll({ type: 'window' })
+      .then(clientList => {
+        const url = event.notification.data.url || '/';
+        
+        // Zaten açık olan bir pencere varsa odaklan
+        for (const client of clientList) {
+          if (client.url === url && 'focus' in client) {
+            return client.focus();
+          }
         }
-      }
-      
-      // Yoksa yeni pencere aç
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
+        
+        // Yoksa yeni bir pencere aç
+        if (clients.openWindow) {
+          return clients.openWindow(url);
+        }
+      })
   );
 });
 
